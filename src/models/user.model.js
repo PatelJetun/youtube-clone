@@ -31,7 +31,6 @@ const userSchema = new Schema(
     },
     coverImage: {
       type: String,
-      required: true,
     },
     watchHistory: [
       {
@@ -50,11 +49,11 @@ const userSchema = new Schema(
   { timestamps: true }
 );
 
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+userSchema.pre("save", async function (/*next*/) {
+  if (!this.isModified("password")) return /*next()*/;
 
   this.password = await bcrypt.hash(this.password, 10);
-  next();
+  // next();
 });
 
 userSchema.methods.isPasswordCorrect = async function (password) {
@@ -65,7 +64,7 @@ userSchema.methods.generateAccessToken = function () {
   return jwt.sign(
     {
       _id: this._id,
-      emial: this.email,
+      email: this.email,
       username: this.username,
       fullName: this.fullName,
     },
