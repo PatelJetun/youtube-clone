@@ -192,7 +192,25 @@ const updateVideo = asyncHandler(async (req, res) => {
 
 const deleteVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
+  const user = req.user;
   //TODO: delete video
+
+  if (!mongoose.isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid Video Id");
+  }
+
+  const deleteVideo = await Video.findOneAndDelete({
+    _id: videoId,
+    owner: user._id,
+  });
+
+  if (!deleteVideo) {
+    throw new ApiError(404, "Could Not Find The Video");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, deleteVideo, "Video Deleted Successfully"));
 });
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
