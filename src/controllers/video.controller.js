@@ -137,8 +137,57 @@ const getVideoById = asyncHandler(async (req, res) => {
 });
 
 const updateVideo = asyncHandler(async (req, res) => {
+  const { title, description } = req.body;
   const { videoId } = req.params;
+  const user = req?.user;
+  let newThumbnail;
   //TODO: update video details like title, description, thumbnail
+
+  if (!title || !description) {
+    throw new ApiError(422, "All Fields Are Required");
+  }
+
+  const localThumbnailPath = req.file?.path;
+
+  if (!mongoose.isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid Video Id");
+  }
+
+  if (!videoId) {
+    throw new ApiError(404, "Cannot Find The Video");
+  }
+
+  const video = await Video.findById(videoId);
+
+  if (!video) {
+    throw new ApiError(404, "Cannot Find The Video");
+  }
+
+  //Check if video owner and the user updating it are same or not
+  if (!video?.owner.equals(user?._id)) {
+    throw new ApiError(401, "Unauthorized Request");
+  }
+
+  //Only Upload On Cloudinary If Thumbnail File Was Uploaded
+  if (localThumbnailPath) {
+    newThumbnail = await uploadOnCloudinary(localThumbnailPath);
+  }
+
+  const updatedVideo = await Video.findByIdAndUpdate(
+    video?._id,
+    {
+      $set: {
+        title: title,
+        description: description,
+        thumbnail: newThumbnail?.url,
+      },
+    },
+    { new: true }
+  );
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedVideo, "Video Updated Successfully"));
 });
 
 const deleteVideo = asyncHandler(async (req, res) => {
