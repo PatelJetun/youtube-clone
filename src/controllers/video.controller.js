@@ -197,6 +197,45 @@ const deleteVideo = asyncHandler(async (req, res) => {
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
+  const user = req?.user;
+
+  if (!mongoose.isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid Video Id");
+  }
+
+  if (!videoId) {
+    throw new ApiError(404, "Cannot Find The Video");
+  }
+
+  const video = await Video.findById(videoId);
+
+  if (!video) {
+    throw new ApiError(404, "Cannot Find The Video");
+  }
+
+  if (!video?.owner.equals(user?._id)) {
+    throw new ApiError(401, "Unauthorized Request");
+  }
+
+  const updatedStatus = await Video.findByIdAndUpdate(
+    video?._id,
+    {
+      $set: {
+        isPublished: !video?.isPublished,
+      },
+    },
+    { new: true }
+  );
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        updatedStatus,
+        `Published Toggle to: ${updatedStatus?.isPublished}`
+      )
+    );
 });
 
 export {
