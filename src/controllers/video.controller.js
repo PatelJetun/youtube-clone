@@ -15,10 +15,6 @@ const publishAVideo = asyncHandler(async (req, res) => {
   const { title, description } = req.body;
   const user = req?.user;
 
-  if (!user) {
-    throw new ApiError(404, "User Not Found");
-  }
-
   // TODO: get video, upload to cloudinary, create video
   if (!title || !description) {
     throw new ApiError(400, "Invalid or Empty Data");
