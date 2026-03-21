@@ -57,6 +57,83 @@ const publishAVideo = asyncHandler(async (req, res) => {
 const getVideoById = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   //TODO: get video by id
+
+  if (!mongoose.isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid Video Id");
+  }
+
+  if (!videoId) {
+    throw new ApiError(404, "Cannot Find The Video");
+  }
+
+  const video = await Video.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(videoId),
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "channel",
+        pipeline: [
+          {
+            $lookup: {
+              from: "subscriptions",
+              localField: "_id",
+              foreignField: "channel",
+              as: "subscribers",
+            },
+          },
+          {
+            $addFields: {
+              subscribersCount: {
+                $size: "$subscribers",
+              },
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+              username: 1,
+              avatar: 1,
+              subscribersCount: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        channel: {
+          $first: "$channel",
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        videoFile: 1,
+        thumbnail: 1,
+        title: 1,
+        description: 1,
+        duration: 1,
+        channel: 1,
+        views: 1,
+        createdAt: 1,
+      },
+    },
+  ]);
+
+  if (!video.length) {
+    throw new ApiError(404, "Cannot Find The Video");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, video[0], "Video Fetched Successfully"));
 });
 
 const updateVideo = asyncHandler(async (req, res) => {
