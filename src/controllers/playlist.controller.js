@@ -93,7 +93,10 @@ const getPlaylistById = asyncHandler(async (req, res) => {
             },
           },
           {
-            $unwind: "$owner",
+            $unwind: {
+              path: "$owner",
+              preserveNullAndEmptyArrays: true,
+            },
           },
           {
             $lookup: {
