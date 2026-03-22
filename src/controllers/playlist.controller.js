@@ -1,4 +1,4 @@
-import mongoose, { isValidObjectId } from "mongoose";
+import mongoose from "mongoose";
 import { Playlist } from "../models/playlist.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -37,7 +37,7 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
   const { userId } = req.params;
   //TODO: get user playlists
 
-  if (!mongoose.isValidObjectId(userId)) {
+  if (!isValidId(userId)) {
     throw new ApiError(400, "Invalid User Id");
   }
 
@@ -62,7 +62,7 @@ const getPlaylistById = asyncHandler(async (req, res) => {
   const { playlistId } = req.params;
   //TODO: get playlist by id
 
-  if (!mongoose.isValidObjectId(playlistId)) {
+  if (!isValidId(playlistId)) {
     throw new ApiError(400, "Invalid Playlist Id");
   }
 

@@ -1,10 +1,11 @@
-import mongoose, { isValidObjectId } from "mongoose";
+import mongoose from "mongoose";
 import { Video } from "../models/video.model.js";
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import isValidId from "../utils/isValidId.js";
 
 const getAllVideos = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
@@ -101,7 +102,7 @@ const getVideoById = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   //TODO: get video by id
 
-  if (!mongoose.isValidObjectId(videoId)) {
+  if (!isValidId(videoId)) {
     throw new ApiError(400, "Invalid Video Id");
   }
 
@@ -192,7 +193,7 @@ const updateVideo = asyncHandler(async (req, res) => {
 
   const localThumbnailPath = req.file?.path;
 
-  if (!mongoose.isValidObjectId(videoId)) {
+  if (!isValidId(videoId)) {
     throw new ApiError(400, "Invalid Video Id");
   }
 
@@ -238,7 +239,7 @@ const deleteVideo = asyncHandler(async (req, res) => {
   const user = req.user;
   //TODO: delete video
 
-  if (!mongoose.isValidObjectId(videoId)) {
+  if (!isValidId(videoId)) {
     throw new ApiError(400, "Invalid Video Id");
   }
 
@@ -260,7 +261,7 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   const user = req?.user;
 
-  if (!mongoose.isValidObjectId(videoId)) {
+  if (!isValidId(videoId)) {
     throw new ApiError(400, "Invalid Video Id");
   }
 
