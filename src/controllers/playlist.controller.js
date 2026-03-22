@@ -4,6 +4,8 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { User } from "../models/user.model.js";
+import { Video } from "../models/video.model.js";
+import isValidId from "../utils/isValidId.js";
 
 const createPlaylist = asyncHandler(async (req, res) => {
   const { name, description } = req.body;
@@ -141,6 +143,34 @@ const getPlaylistById = asyncHandler(async (req, res) => {
 
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
   const { playlistId, videoId } = req.params;
+
+  if (!isValidId(playlistId) || !isValidId(videoId)) {
+    throw new ApiError(400, "Playlist or Vidoe Does Not Exists");
+  }
+
+  const video = await Video.findOne({ _id: videoId, isPublished: true });
+
+  if (!video) {
+    throw new ApiError(400, "No Such Video Exists");
+  }
+
+  const updatedPlaylist = await Playlist.findByIdAndUpdate(
+    playlistId,
+    {
+      $addToSet: {
+        videos: videoId,
+      },
+    },
+    { new: true }
+  );
+
+  if (!updatedPlaylist) {
+    throw new ApiError(400, "Could Not Find The Playlist");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedPlaylist, "Video added to the playlist"));
 });
 
 const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
